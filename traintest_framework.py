@@ -77,7 +77,7 @@ resultsVal = []#f1, accuracy
 resultsArousal = []
 resultsOverall = []
 #Naive Bayes Valence Classifier
-for _ in range(25):
+for _ in range(23):
 	data, truthV, filenames = getData(rootDir,True,not trainModels)
 	total_size = len(data)
 	training_size = int(total_size * 0.9)

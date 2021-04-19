@@ -60,3 +60,5 @@ def visualize(correctVals, predictVals, songCodes, songTitles, songArtists):#
 		plt.text(-1, -1.1, songTitles[i] + " - " + songArtists[i])#Print Song title + artist
 		plt.show()
 		play_audio("audio/wav/"+songCodes[i]+".wav")
+
+#visualize([(1,1)], [(1,0)], ["A112"], ["Mother"], ["John Lennon"])
