@@ -3,8 +3,10 @@ import pyaudio
 import wave  
 import time
 
+quadrantMap = {3: (0,0), 2: (0,1), 4: (1,0), 1: (1,1)}
+
 def play_audio(songname): 
-	songDuration = 10
+	songDuration = 8
 	f = wave.open(songname,"rb")   
 	p = pyaudio.PyAudio()  
 	stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
@@ -54,11 +56,13 @@ def visualize(correctVals, predictVals, songCodes, songTitles, songArtists):#
 		ax.spines['top'].set_color('none')
 		ax.spines['bottom'].set_position('zero')
 		ax.spines['left'].set_position('zero')
-		ax.plot(val[0]-0.5,val[1]-0.5,'s', markersize=20)
-		ax.plot(predictVals[i][0]-0.5,predictVals[i][1]-0.5,'X', markersize=20)
+		correct = quadrantMap[val]
+		predict = quadrantMap[predictVals[i]]
+		ax.plot(correct[0]-0.5,correct[1]-0.5,'s', markersize=20)
+		ax.plot(predict[0]-0.5,predict[1]-0.5,'X', markersize=20)
 		plt.gca().legend(('Predict','Correct'), bbox_to_anchor=(1.05, 1),loc='upper left', labelspacing=1.0, frameon=False)
 		plt.text(-1, -1.1, songTitles[i] + " - " + songArtists[i])#Print Song title + artist
 		plt.show()
-		play_audio("audio/wav/"+songCodes[i]+".wav")
+		play_audio(songCodes[i])
 
 #visualize([(1,1)], [(1,0)], ["A112"], ["Mother"], ["John Lennon"])

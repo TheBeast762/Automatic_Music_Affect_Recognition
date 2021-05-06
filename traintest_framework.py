@@ -4,19 +4,17 @@ import shutil
 import random
 import pandas as pd
 from lyrics.moodclassifier import MoodClassifier
-from audio.storelibrosa import storeLibrosa
+from audio.librosafeatures import librosaFeatures
 from audio.pyAudioAnalysis import audioFeatureExtraction
-from audio import trainSVM, values
+from audio import sound_values
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, confusion_matrix, f1_score, accuracy_score
-from sklearn.model_selection import train_test_split
-from openpyxl import load_workbook
+from sklearn.metrics import f1_score, accuracy_score
 import visualizeQuadrants
 import _pickle as cPickle
 
 def extractFeatures(dir):
 	audioFeatureExtraction.mtFeatureExtractionToFileDir(dir, 1, 1, 0.025, 0.025, True, True, False)
-	storeLibrosa(dir)
+	librosaFeatures(dir)
 
 def cleanDir(path):
 	files = glob.glob(path)
@@ -69,7 +67,7 @@ def getData(root,randomness, loadSeed):#0.0 seed if you want new seed
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 
-trainModels = True
+trainModels = False
 quadrantMap = {(0,0): 3, (0,1): 2, (1,0): 4, (1,1): 1}
 rootDir = 'lyrics/processed_lyrics'
 classifierNB = MoodClassifier()
@@ -77,65 +75,66 @@ resultsVal = []#f1, accuracy
 resultsArousal = []
 resultsOverall = []
 #Naive Bayes Valence Classifier
-for _ in range(23):
-	data, truthV, filenames = getData(rootDir,True,not trainModels)
-	total_size = len(data)
-	training_size = int(total_size * 0.9)
-	testing_size = total_size - training_size
-	if trainModels:
-		classifierNB.fit(data[:(training_size)],truthV[:(training_size)])
-		classifierNB.writeClf("lyrics/modelNB.json")
-	classifierNB.readClf("lyrics/modelNB.json")
-	predictionVal = classifierNB.predict(data[(testing_size*-1):])#only predict for test lyric files
-	answerVal = truthV[(testing_size*-1):]#only find truth for test lyric files
-	resultsVal.append((f1_score(answerVal, predictionVal, average="macro"), accuracy_score(answerVal, predictionVal)))
-	with open("results_valence.txt", "w") as text_file:
-		text_file.write(str(resultsVal))
-	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-	#VALENCE^               SPLIT                AROUSALv          #
-	#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-	audio_train_dir = "audio/training/"
-	audio_test_dir = "audio/testing/"
-	arousalFileName = "arousalSVMclf.file"
-	bimodal = pd.read_csv("bimodal.csv", sep='\t')#162
-	audio_data = pd.read_csv("audio_dataset.csv")#162
-	test_lyrics = [file.split(".")[0] for file in filenames[(testing_size*-1):]]
-	test_audio = bimodal.loc[bimodal['Lyrics Code'].isin(test_lyrics)]["Song Code"].tolist()
-	if trainModels:
-		training_lyrics = [file.split(".")[0] for file in filenames[:(training_size)]]
-		training_audio = audio_data.loc[~audio_data['Song Code'].isin(test_audio)]["Song Code"].tolist()#audio dataset without bimodal test set
-		copyFiles("audio/wav/", audio_train_dir, training_audio)
-		extractFeatures(audio_train_dir)
-		[_, aVal] = values.getFeatures(audio_train_dir)
-		[_, aLabel] = values.getLabels(training_audio, audio_train_dir, audio_data)#get labels from audio files
-		arousalModel = SVC(C = 150, kernel = "linear", probability = True)
-		arousalModel.fit(aVal, aLabel)	
-		cPickle.dump(arousalModel, open(arousalFileName, "wb"))
-		with open('audio/test_audio.txt', 'w') as f:
-		    for line in test_audio:
-		        f.write("%s\n" % line)
+data, truthV, filenames = getData(rootDir,True,not trainModels)
+total_size = len(data)
+training_size = int(total_size * 0.9)
+testing_size = total_size - training_size
+if trainModels:
+	classifierNB.fit(data[:(training_size)],truthV[:(training_size)])
+	classifierNB.writeClf("lyrics/modelNB.json")
+classifierNB.readClf("lyrics/modelNB.json")
+predictionVal = classifierNB.predict(data[(testing_size*-1):])#only predict for test lyric files
+answerVal = truthV[(testing_size*-1):]#only find truth for test lyric files
+print("Valence F1:",f1_score(answerVal, predictionVal, average="macro"), " accuracy:", accuracy_score(answerVal, predictionVal))
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#VALENCE^               SPLIT                AROUSALv          #
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+audio_train_dir = "audio/training/"
+audio_test_dir = "audio/testing/"
+arousalFileName = "arousalSVMclf.file"
+bimodal = pd.read_csv("bimodal.csv", sep='\t')#162
+audio_data = pd.read_csv("audio_dataset.csv")#162
+test_lyrics = [file.split(".")[0] for file in filenames[(testing_size*-1):]]
+test_audio = bimodal.loc[bimodal['Lyrics Code'].isin(test_lyrics)]["Song Code"].tolist()
+if trainModels:
+	training_lyrics = [file.split(".")[0] for file in filenames[:(training_size)]]
+	training_audio = audio_data.loc[~audio_data['Song Code'].isin(test_audio)]["Song Code"].tolist()#audio dataset without bimodal test set
+	copyFiles("audio/wav/", audio_train_dir, training_audio)
+	extractFeatures(audio_train_dir)
+	[_, aVal] = sound_values.getSongFeatures(audio_train_dir)
+	[_, aLabel] = sound_values.getSongLabels(training_audio, audio_train_dir, audio_data)#get labels from audio files
+	arousalModel = SVC(C = 150, kernel = "linear", probability = True)
+	arousalModel.fit(aVal, aLabel)	
+	cPickle.dump(arousalModel, open(arousalFileName, "wb"))
+	with open('audio/test_audio.txt', 'w') as f:
+	    for line in test_audio:
+	        f.write("%s\n" % line)
 
-	#start Testing!
-	copyFiles("audio/wav/", audio_test_dir, test_audio)
-	extractFeatures(audio_test_dir)
-	arousalModel = cPickle.load(open(arousalFileName, 'rb'))
-	[_, aVal] = values.getFeatures(audio_test_dir)
-	[aName, aLabel] = values.getLabels(test_audio, audio_test_dir, audio_data)
-	predictArousal = arousalModel.predict(aVal)
-	test_songs = bimodal.loc[bimodal["Song Code"].isin(aName)]["Song"].tolist()
-	test_artists = bimodal.loc[bimodal["Song Code"].isin(aName)]["Artist"].tolist()
-	resultsArousal.append((f1_score(answerVal, predictionVal, average="macro"), accuracy_score(answerVal, predictionVal)))
-	with open("results_arousal.txt", "w") as text_file:
-		text_file.write(str(resultsArousal))
-	bimodalMapping = pd.Series(bimodal["Lyrics Code"].values,index=bimodal["Song Code"]).to_dict()
-	correctVals = []
-	predictVals = []
-	for i, name in enumerate(aName):
-		index = test_lyrics.index(bimodalMapping[name])
-		correctVals.append(quadrantMap[(answerVal[index],aLabel[i])])
-		predictVals.append(quadrantMap[(predictionVal[index],predictArousal[i])])
+#start Testing!
+copyFiles("audio/wav/", audio_test_dir, test_audio)
+testWavFiles = glob.glob(audio_test_dir+'*.wav')
+extractFeatures(audio_test_dir)
+arousalModel = cPickle.load(open(arousalFileName, 'rb'))
+[_, aVal] = sound_values.getSongFeatures(audio_test_dir)
+[aName, aLabel] = sound_values.getSongLabels(test_audio, audio_test_dir, audio_data)
+predictArousal = arousalModel.predict(aVal)
+resultsArousal.append((f1_score(answerVal, predictionVal, average="macro"), accuracy_score(answerVal, predictionVal)))
+bimodalMapping = pd.Series(bimodal["Lyrics Code"].values,index=bimodal["Song Code"]).to_dict()
 
-	#visualizeQuadrants.visualize(correctVals, predictVals, aName, test_songs, test_artists)
-	resultsOverall.append((f1_score(correctVals, predictVals, average="macro"), accuracy_score(correctVals, predictVals)))
-	with open("results_overall.txt", "w") as text_file:
-		text_file.write(str(resultsOverall))
+#Assess quality of testing
+correctVals = []
+predictVals = []
+songCodes = []
+test_songs = []
+test_artists = []
+for i, name in enumerate(aName):#align song lists
+	index = test_lyrics.index(bimodalMapping[name])
+	test_songs.append(bimodal.loc[bimodal["Song Code"] == name]["Song"].to_string(index=False))
+	test_artists.append(bimodal.loc[bimodal["Song Code"] == name]["Artist"].to_string(index=False))
+	songCodes.append([file for file in testWavFiles if name in file][0])
+	correctVals.append(quadrantMap[(answerVal[index],aLabel[i])])
+	predictVals.append(quadrantMap[(predictionVal[index],predictArousal[i])])
+
+input('Push any button to start the Visual Tool!')
+visualizeQuadrants.visualize(correctVals, predictVals, songCodes, test_songs, test_artists)
+print("Arousal F1:", f1_score(correctVals, predictVals, average="macro"), " accuracy:", accuracy_score(correctVals, predictVals))
