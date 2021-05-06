@@ -43,13 +43,46 @@
 </center>
 
 <h3>Bimodal Dataset</h3>
-<p>This is another paragraph.</p>
+<p>This project features a bimodal dataset containing 30 second audio clips with their corresponding lyric text files, this dataset was taken from Panda et al. [3] The original dataset contained 133 bimodal data points, but there was a missing overlap between audio and lyric files. The missing lyric files were manually extended, resulting in a bimodal dataset of 162 data points. Unfortunately, this enlarged dataset is still very small. It isn't easily extended though, as its annotation was done by 39 human annotators, who reached an inter-annotator agreement of ~0.85.</p>
+<center>
+<figure>
+  <img width=250, src="https://raw.githubusercontent.com/TheBeast762/TheBeast762.github.io/main/class_distr.png">
+  <figcaption>Class distribution for improved bimodal dataset</figcaption>
+</figure>
+</center>
 
 <h3>Feature Extraction</h3>
-<p>This is another paragraph.</p>
+<p>Audio features were extracted using Giannakopoulos' open-source library <a href="https://github.com/tyiannak/pyAudioAnalysis">pyAudioAnalysis</a>. The following feature set selection was made, based on the research of Grekow et al. [4]:</p>
+<center>
+<table border = "1">
+         <tr>
+            <td align="center", colspan="6"><b>Audio Features</b></td>
+         </tr>
+         
+         <tr>
+            <td>Energy</td>
+            <td>Entropy of Energy</td>
+            <td>Spectral Entropy</td>
+            <td>Beats per minute</td>
+            <td>Spectral Roll-off</td>
+            <td>Spectral Flux</td>
+         </tr>
+         <tr>
+         	<td>StdDev Energy</td>
+            <td>StdDev Entropy of Energy</td>
+            <td>StdDev Spectral Entropy</td>
+            <td>StdDev Beats per minute</td>
+            <td>StdDev Spectral Roll-off</td>
+            <td>StdDev Spectral Flux</td>
+         </tr>
+      </table>
+</center>
+<p>The raw lyric files were pre-processed by removing stop words/punctuation and lemmatizing the words to their lemma. These pre-processed files were later used to match with a valence dictionary, in which each word has an associated valence score. This method was based on the method by Warriner et al.[5]</p>
 
 <h3>Model Ensemble</h3>
-<p>This is another paragraph.</p>
+<p>A Naive Bayes model was trained given the individual valence scores for each word, the overall valence class of the lyric file was determined by considering whether each word has negative or positive valence and giving preference to the highest probability class.</p>
+<p>A Support Vector Machine was trained on all previously mentioned audio features, with the correct labels being based on the bimodal dataset. Creating a linear hyperplane between both classes is most likely impossible, resulting in this model being guaranteed to be imperfect.</p>
+<p>These two models are combined in an ensemble, which outputs a class for both Valence and Arousal. These predictions can be mapped as coordinates to the 4 quadrants of the Russell's model.</p>
 
 <h3>Experiment</h3>
 <p>This is another paragraph.</p>
@@ -68,6 +101,9 @@
 <h4>References</h4>
 <p>[1] Russell, James. (1980). A Circumplex Model of Affect. Journal of Personality and Social Psychology. 39. 1161-1178. 10.1037/h0077714</p>
 <a href="https://iopscience.iop.org/article/10.1088/1757-899X/482/1/012019/pdf">[2] Automatic music mood recognition using Russell's twodimensional valence-arousal space from audio and lyrical data as classified using SVM and Naive Bayes - K R Tan, M L Villarino, C Maderazo (2019)</a>
+<p>[3] Bi-modal music emotion recognition: Novel lyrical features and dataset - R. Malheiro, R. Panda, Paulo Gomes, R. Paiva (2016)</p>
+<p>[4] Audio features dedicated to the detection and tracking of arousal and valence in musical compositions - J Grekow (2018)</p>
+<p>[5] Norms of valence, arousal, and dominance for 13,915 English lemmas - Warriner A B, Kuperman V and Brysbaert M (2013)</p>
 <p></p>
 
 </td></tr>
