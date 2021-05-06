@@ -85,17 +85,33 @@
 <p>These two models are combined in an ensemble, which outputs a class for both Valence and Arousal. These predictions can be mapped as coordinates to the 4 quadrants of the Russell's model.</p>
 
 <h3>Experiment</h3>
-<p>This is another paragraph.</p>
+<p>Seeing as the dataset is very small, k-fold cross-validation can produce skewed results due to extreme outliers (which are expected due to Naive Bayes being sensitive to unbalanced training set class distributions). Instead, preference is given to repeated random sub-sampling, allowing for a large amount of iterations of a 10% test set and 90% training set split, averaging out to more trustworthy performance results.</p>
 
-<h3>Results</h3>
-<p>This is another paragraph.</p>
 <center>
-<img width="600", src="https://raw.githubusercontent.com/TheBeast762/TheBeast762.github.io/main/accuracies.png">
-<img width="500", src="https://raw.githubusercontent.com/TheBeast762/TheBeast762.github.io/main/visualTool.png">
+<figure>
+  <img width=300, src="https://raw.githubusercontent.com/TheBeast762/TheBeast762.github.io/main/randomsub-sampling.png">
+  <figcaption>Random sub-sampling method</figcaption>
+</figure>
 </center>
 
+<h3>Results</h3>
+<center>
+<figure>
+  <img width=600, src="https://raw.githubusercontent.com/TheBeast762/TheBeast762.github.io/main/accuracies.png">
+  <figcaption>Accuracy(%) whisker plots</figcaption>
+</figure>
+</center>
+<p>Although there is a significant amount of variance in the results, the mean accuracies of the Naive Bayes model, the SVM and the ensemble are 78%, 78% and 62% respectively. This is a bit lower than the state-of-the-art performance in this field, as Catharin et al. [6] reached an accuracy of 73%.</p>
+<center>
+<figure>
+  <img width=300, src="https://raw.githubusercontent.com/TheBeast762/TheBeast762.github.io/main/visualTool.png">
+  <figcaption>Visual Tool to assess performance</figcaption>
+</figure>
+</center>
+<p>Finally, a simple visual tool was developed in order to somewhat personify the predictions of the model ensemble. At times the incorrectly predicted Valence or Arousal classes are defensible. For example, if a Valence prediction is incorrect, the lyrics can bear both positive and negative Valence, depending on the interpretation. This hints at this project still being applicable for recommendation of songs based on the user's listening history.</p>
+
 <h3>Conclusion</h3>
-<p>This is another paragraph.</p>
+<p>With an overall accuracy of 62%, this project failed to break the state-of-the-art performance threshold of competing algorithms, but might still be usable for song recommendation. Still, developing a simple reconstruction of [2] was a fun and educational way to learn about audio feature extraction and modelling.</p>
 
 <hr>
 <h4>References</h4>
@@ -104,6 +120,7 @@
 <p>[3] Bi-modal music emotion recognition: Novel lyrical features and dataset - R. Malheiro, R. Panda, Paulo Gomes, R. Paiva (2016)</p>
 <p>[4] Audio features dedicated to the detection and tracking of arousal and valence in musical compositions - J Grekow (2018)</p>
 <p>[5] Norms of valence, arousal, and dominance for 13,915 English lemmas - Warriner A B, Kuperman V and Brysbaert M (2013)</p>
+<p>[6] Multimodal Classification of Emotions in Latin Music - L. G. Catharin and Rafael P. Ribeiro and C. N. Silla and Yandre M. G. Costa and V. D. Feltrim (2020)</p>
 <p></p>
 
 </td></tr>
