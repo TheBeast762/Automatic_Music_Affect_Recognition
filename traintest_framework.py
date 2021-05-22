@@ -54,7 +54,7 @@ def getData(root,randomness, loadSeed):#0.0 seed if you want new seed
 		random_float = 0.0
 		if loadSeed: 
 			with open("lyrics/seed.txt", "r") as seed_file:
-				random_file = seed_file.read().replace('\n', '')
+				random_float = float(seed_file.read().replace('\n', ''))
 		else:
 			random_float = random.random()
 		with open("lyrics/seed.txt", "w") as seed_file:
@@ -67,7 +67,13 @@ def getData(root,randomness, loadSeed):#0.0 seed if you want new seed
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 
-trainModels = False
+trainModels = True
+if len(sys.argv) > 2:
+	if sys.argv[1] == '-reload':
+		print("   [Training phase skipped! Loading already trained model]")
+		trainModels = False
+	else:
+		print("   [run with option -reload to test the already trained model ensemble!]")
 quadrantMap = {(0,0): 3, (0,1): 2, (1,0): 4, (1,1): 1}
 rootDir = 'lyrics/processed_lyrics'
 classifierNB = MoodClassifier()
