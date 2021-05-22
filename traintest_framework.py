@@ -11,6 +11,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import f1_score, accuracy_score
 import visualizeQuadrants
 import _pickle as cPickle
+import sys
 
 def extractFeatures(dir):
 	audioFeatureExtraction.mtFeatureExtractionToFileDir(dir, 1, 1, 0.025, 0.025, True, True, False)
@@ -68,7 +69,7 @@ def getData(root,randomness, loadSeed):#0.0 seed if you want new seed
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 
 trainModels = True
-if len(sys.argv) > 2:
+if len(sys.argv) > 1:
 	if sys.argv[1] == '-reload':
 		print("   [Training phase skipped! Loading already trained model]")
 		trainModels = False
